@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<openerp>
+    <data noupdate="1">
+
+
+        <!-- Auto assign partner  -->
+
+        <record id="auto_assign" model="ir.filters">
+            <field name="name">Auto assign</field>
+            <field name="model_id">crm.lead</field>
+            <field name="user_id" eval="False"/>
+        </record>
+        <record id="action_auto_assign_partner" model="ir.actions.server">
+            <field name="name">Auto assign partner</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="condition">True</field>
+            <field name="type">ir.actions.server</field>
+            <field name="state">code</field>
+            <field name="code">
+              if context.get('active_model') == 'crm.lead':
+                 ids = []
+                 if context.get('active_domain'):
+                     ids = self.search(cr, uid, context['active_domain'], context=context)
+                 elif context.get('active_ids'):
+                     ids = context['active_ids']
+                 if ids:
+                     self.assign_partner(cr, uid, ids, partner_id=False, context=context)
+            </field>
+        </record>
+        <record id="rule_set_followers_lead" model="base.action.rule">
+            <field name="name">Auto assign</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="sequence">2</field>
+            <field name="kind">on_create_or_write</field>
+            <field name="act_user_id" ref="base.user_root"/>
+            <field name="server_action_ids" eval="[(6,0,[ref('action_auto_assign_partner')])]"/>
+        </record>
+    </data>
+</openerp>
